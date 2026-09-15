@@ -14,6 +14,7 @@ const files = pack.files.map(({ path }) => path).sort();
 const expected = [
   "CHANGELOG.md",
   "LICENSE",
+  "README.en.md",
   "README.md",
   "package.json",
   "src/bash-block.ts",

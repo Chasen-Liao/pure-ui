@@ -580,7 +580,7 @@ describe("tool-call-markers with Pi's real renderer", () => {
       bg: (_color: string, text: string) => text,
     };
     for (const handler of sessionHandlers) {
-      handler({}, { ui: { theme: ansiTheme, setToolsExpanded() {} } });
+      handler({}, { mode: "tui", ui: { theme: ansiTheme, setToolsExpanded() {} } });
     }
     try {
       const settledChat = new Container();
@@ -602,7 +602,7 @@ describe("tool-call-markers with Pi's real renderer", () => {
       expect(failedOutput).not.toContain("\x1b[90m…");
     } finally {
       for (const handler of sessionHandlers) {
-        handler({}, { ui: { theme: extensionTheme, setToolsExpanded() {} } });
+        handler({}, { mode: "tui", ui: { theme: extensionTheme, setToolsExpanded() {} } });
       }
     }
   });
@@ -1284,13 +1284,13 @@ describe("user bash blocks", () => {
 
   function withTheme(fn: () => void): void {
     for (const handler of sessionHandlers) {
-      handler({}, { ui: { theme: ansiTheme, setToolsExpanded() {} } });
+      handler({}, { mode: "tui", ui: { theme: ansiTheme, setToolsExpanded() {} } });
     }
     try {
       fn();
     } finally {
       for (const handler of sessionHandlers) {
-        handler({}, { ui: { theme: extensionTheme, setToolsExpanded() {} } });
+        handler({}, { mode: "tui", ui: { theme: extensionTheme, setToolsExpanded() {} } });
       }
     }
   }
@@ -1360,7 +1360,7 @@ describe("user bash blocks", () => {
       },
     } as unknown as ExtensionAPI);
     for (const handler of localStarts) {
-      handler({}, { ui: { theme: extensionTheme, setToolsExpanded() {} } });
+      handler({}, { mode: "tui", ui: { theme: extensionTheme, setToolsExpanded() {} } });
     }
     const firstOwnerShutdown = shutdownHandlers.shift()!;
     const finalOwnerShutdown = localShutdowns[0]!;

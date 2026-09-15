@@ -14,6 +14,10 @@ class MockLabelText {
   }
 }
 
+class MockMouseRegion {
+  constructor(public child: MockLabelText) {}
+}
+
 class MockAssistantMessageComponent {
   hiddenThinkingLabel = "Thinking...";
   hideThinkingBlock = true;
@@ -31,12 +35,13 @@ class MockAssistantMessageComponent {
     this.contentContainer.children =
       this.hideThinkingBlock === true &&
       typeof this.hiddenThinkingLabel === "string"
-        ? [new MockLabelText(this.hiddenThinkingLabel)]
+        ? [new MockMouseRegion(new MockLabelText(this.hiddenThinkingLabel))]
         : [];
   }
 
   get labelChild(): MockLabelText | undefined {
-    return this.contentContainer.children[0] as MockLabelText | undefined;
+    return (this.contentContainer.children[0] as MockMouseRegion | undefined)
+      ?.child;
   }
 }
 

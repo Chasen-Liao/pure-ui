@@ -541,10 +541,14 @@ function compactArgs(args: unknown): string {
 }
 
 function resultText(row: ToolExecutionRow): string {
-  const contentText = row.result?.content?.find(
-    (content) => content.type === "text" && typeof content.text === "string",
-  )?.text;
-  if (typeof contentText === "string") return contentText;
+  const contentText = row.result?.content
+    ?.filter(
+      (content) => content.type === "text" && typeof content.text === "string",
+    )
+    .map((content) => (content.text as string).trim())
+    .filter((text) => text.length > 0)
+    .join("\n");
+  if (contentText) return contentText;
   return row.getTextOutput?.() ?? "";
 }
 
@@ -1703,18 +1707,13 @@ function uninstallPresentationPatch(
 // rendering here too would double-render every native compaction.
 export default function (pi: ExtensionAPI) {
   const patch = installPresentationPatch();
-  const grouping = patch ? installGroupingPatch(patch) : undefined;
   const bashPatch = installBashBlockPatch();
+  const grouping = patch ? installGroupingPatch(patch) : undefined;
   installInfoVisibility(pi);
   let released = false;
 
   pi.on("session_start", (_event, ctx) => {
-    if (patch) patch.theme = ctx.ui.theme;
-    if (bashPatch) bashPatch.theme = ctx.ui.theme;
-    ctx.ui.setToolsExpanded(false);
-  });
-
-  pi.on("session_start", (_event, ctx) => {
+    if (ctx.mode !== "tui") return;
     if (patch) patch.theme = ctx.ui.theme;
     if (bashPatch) bashPatch.theme = ctx.ui.theme;
     ctx.ui.setToolsExpanded(false);

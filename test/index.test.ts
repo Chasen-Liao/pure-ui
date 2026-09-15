@@ -76,7 +76,7 @@ class MockToolExecutionComponent extends MockContainer {
   result?: {
     isError: boolean;
     output: string;
-    content?: Array<{ type: string }>;
+    content?: Array<{ type: string; text?: string }>;
     details?: Record<string, unknown>;
   };
   contentBox = new MockBox();
@@ -135,7 +135,7 @@ class MockToolExecutionComponent extends MockContainer {
     result: {
       isError: boolean;
       output: string;
-      content?: Array<{ type: string }>;
+      content?: Array<{ type: string; text?: string }>;
       details?: Record<string, unknown>;
     },
     isPartial = false,
@@ -196,6 +196,7 @@ const originalCollapseParallel = process.env[COLLAPSE_PARALLEL_ENV];
 
 const sessionHandlers: Array<(event: unknown, ctx: unknown) => void> = [];
 const shutdownHandlers: Array<() => void> = [];
+let setToolsExpandedCalls = 0;
 const theme = {
   bold: (text: string) => text,
   fg: (_color: string, text: string) => text,
@@ -230,7 +231,10 @@ function install(): void {
     },
   } as never);
   for (const handler of sessionHandlers) {
-    handler({}, { ui: { theme, setToolsExpanded() {} } });
+    handler({}, {
+      mode: "tui",
+      ui: { theme, setToolsExpanded: () => setToolsExpandedCalls++ },
+    });
   }
 }
 
@@ -244,6 +248,7 @@ function reinstallWithCollapseParallel(value: string): void {
 beforeEach(() => {
   sessionHandlers.length = 0;
   shutdownHandlers.length = 0;
+  setToolsExpandedCalls = 0;
   delete process.env[COLLAPSE_PARALLEL_ENV];
   install();
 });
@@ -256,6 +261,16 @@ afterEach(() => {
 });
 
 describe("pure-ui grouping", () => {
+  test("applies session UI state once and only for TUI sessions", () => {
+    expect(setToolsExpandedCalls).toBe(1);
+
+    for (const handler of sessionHandlers) {
+      expect(() => handler({}, { mode: "rpc" })).not.toThrow();
+    }
+
+    expect(setToolsExpandedCalls).toBe(1);
+  });
+
   test("renders adjacent successful calls as one header with bullets", () => {
     const chat = new MockContainer();
     chat.addChild(succeeded("read", "one.md"));
@@ -372,7 +387,7 @@ describe("pure-ui grouping", () => {
     };
     try {
       for (const handler of sessionHandlers) {
-        handler({}, { ui: { theme: taggingTheme, setToolsExpanded() {} } });
+        handler({}, { mode: "tui", ui: { theme: taggingTheme, setToolsExpanded() {} } });
       }
       const chat = new MockContainer();
       chat.addChild(succeeded("read", "one.md"));
@@ -393,7 +408,7 @@ describe("pure-ui grouping", () => {
       expect(colors).toEqual(new Set(["error"]));
     } finally {
       for (const handler of sessionHandlers) {
-        handler({}, { ui: { theme, setToolsExpanded() {} } });
+        handler({}, { mode: "tui", ui: { theme, setToolsExpanded() {} } });
       }
     }
   });
@@ -406,7 +421,7 @@ describe("pure-ui grouping", () => {
     };
     try {
       for (const handler of sessionHandlers) {
-        handler({}, { ui: { theme: taggingTheme, setToolsExpanded() {} } });
+        handler({}, { mode: "tui", ui: { theme: taggingTheme, setToolsExpanded() {} } });
       }
       const chat = new MockContainer();
       chat.addChild(succeeded("read", "one.md"));
@@ -427,7 +442,7 @@ describe("pure-ui grouping", () => {
       expect(colors).toEqual(new Set(["error"]));
     } finally {
       for (const handler of sessionHandlers) {
-        handler({}, { ui: { theme, setToolsExpanded() {} } });
+        handler({}, { mode: "tui", ui: { theme, setToolsExpanded() {} } });
       }
     }
   });
@@ -447,7 +462,7 @@ describe("pure-ui grouping", () => {
     };
     try {
       for (const handler of sessionHandlers) {
-        handler({}, { ui: { theme: taggingTheme, setToolsExpanded() {} } });
+        handler({}, { mode: "tui", ui: { theme: taggingTheme, setToolsExpanded() {} } });
       }
       const chat = new MockContainer();
       chat.addChild(succeeded("read", "one.md"));
@@ -467,7 +482,7 @@ describe("pure-ui grouping", () => {
       expect(colors).toEqual(new Set(["m", "T", "o"]));
     } finally {
       for (const handler of sessionHandlers) {
-        handler({}, { ui: { theme, setToolsExpanded() {} } });
+        handler({}, { mode: "tui", ui: { theme, setToolsExpanded() {} } });
       }
     }
   });
@@ -528,6 +543,41 @@ describe("pure-ui grouping", () => {
     chat.addChild(read);
 
     expect(renderPlain(chat)).toContain("notes.md → 1 line");
+  });
+
+  test("combines non-empty text result blocks for summaries", () => {
+    const chat = new MockContainer();
+    const read = new MockToolExecutionComponent("read", "notes.md");
+    read.updateResult({
+      isError: false,
+      output: "fallback",
+      content: [
+        { type: "text", text: "  \n" },
+        { type: "text", text: "first line\nsecond line\n" },
+        { type: "text", text: " third line " },
+        { type: "text", text: "  " },
+      ],
+    });
+    chat.addChild(read);
+
+    expect(renderPlain(chat)).toContain("notes.md → 3 lines");
+  });
+
+  test("uses the first non-empty text block for error summaries", () => {
+    const chat = new MockContainer();
+    const failed = new MockToolExecutionComponent("read", "broken.md");
+    failed.updateResult({
+      isError: true,
+      output: "fallback error",
+      content: [
+        { type: "text", text: " \n" },
+        { type: "text", text: "actual failure\nmore details" },
+      ],
+    });
+    chat.addChild(failed);
+
+    expect(renderPlain(chat)).toContain("→ actual failure");
+    expect(renderPlain(chat)).not.toContain("fallback error");
   });
 
   test("reuses the grouped render while the calls are unchanged", () => {
@@ -937,6 +987,26 @@ describe("pure-ui grouping", () => {
     expect(lines.find((line) => line.includes("image pixels"))).toMatch(/^  /);
   });
 
+  test("keeps text and image result blocks on the image rendering path", () => {
+    const chat = new MockContainer();
+    const mixed = new MockToolExecutionComponent("read", "mixed.png");
+    mixed.updateResult({
+      isError: false,
+      output: "rendered image",
+      content: [
+        { type: "text", text: "image description" },
+        { type: "image" },
+      ],
+    });
+    mixed.imageSpacers = [new MockText("")];
+    mixed.imageComponents = [new MockText("[mixed image pixels]")];
+    chat.addChild(mixed);
+
+    const output = chat.render(100).map(stripAnsi).join("\n");
+    expect(output).toContain("rendered image");
+    expect(output).toContain("[mixed image pixels]");
+  });
+
   test("keeps failed calls separate and collapsed until expanded", () => {
     const chat = new MockContainer();
     chat.addChild(succeeded("read", "one.md"));
@@ -988,7 +1058,7 @@ describe("pure-ui grouping", () => {
       bg: vi.fn((_color: string, text: string) => text),
     };
     for (const handler of sessionHandlers) {
-      handler({}, { ui: { theme: semanticTheme, setToolsExpanded() {} } });
+      handler({}, { mode: "tui", ui: { theme: semanticTheme, setToolsExpanded() {} } });
     }
 
     const pendingChat = new MockContainer();
@@ -1320,7 +1390,7 @@ describe("pure-ui grouping", () => {
     };
     try {
       for (const handler of sessionHandlers) {
-        handler({}, { ui: { theme: taggingTheme, setToolsExpanded() {} } });
+        handler({}, { mode: "tui", ui: { theme: taggingTheme, setToolsExpanded() {} } });
       }
       const chat = new MockContainer();
       const row = new MockToolExecutionComponent("subagent", "failed");
@@ -1343,7 +1413,7 @@ describe("pure-ui grouping", () => {
       }
     } finally {
       for (const handler of sessionHandlers) {
-        handler({}, { ui: { theme, setToolsExpanded() {} } });
+        handler({}, { mode: "tui", ui: { theme, setToolsExpanded() {} } });
       }
     }
   });

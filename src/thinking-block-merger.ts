@@ -133,6 +133,41 @@ type TextLikeChild = {
   setText?(text: string): void;
 };
 
+type WrappedTextChild = TextLikeChild & {
+  child?: unknown;
+  children?: unknown[];
+};
+
+function findTextChild(
+  value: unknown,
+  label: string,
+  seen = new Set<object>(),
+): TextLikeChild | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  if (seen.has(value)) return undefined;
+  seen.add(value);
+
+  const candidate = value as TextLikeChild;
+  if (
+    typeof candidate.text === "string" &&
+    typeof candidate.setText === "function" &&
+    candidate.text.includes(label)
+  ) {
+    return candidate;
+  }
+
+  const wrapped = value as WrappedTextChild;
+  const nested = findTextChild(wrapped.child, label, seen);
+  if (nested) return nested;
+  if (Array.isArray(wrapped.children)) {
+    for (const child of wrapped.children) {
+      const nestedChild = findTextChild(child, label, seen);
+      if (nestedChild) return nestedChild;
+    }
+  }
+  return undefined;
+}
+
 // Pi renders the hidden-thinking label as an italic Text node built from the
 // plain label field. Embedding style codes in the field itself is not
 // enough: the TUI diff renderer reuses the byte prefix shared with the
@@ -151,16 +186,10 @@ function restyleHiddenThinkingLabel(row: AssistantMessageRow): void {
   if (!Array.isArray(children)) return;
   if (!liveLabelStyle && !settledLabelStyle) return;
   const styled = visibleThoughtLabel(label);
+  const seen = new Set<object>();
   for (const child of children) {
-    const textChild = child as TextLikeChild | undefined;
-    if (
-      typeof textChild?.text !== "string" ||
-      typeof textChild.setText !== "function" ||
-      !textChild.text.includes(label)
-    ) {
-      continue;
-    }
-    textChild.setText(styled);
+    const textChild = findTextChild(child, label, seen);
+    textChild?.setText?.(styled);
   }
 }
 
