@@ -1,18 +1,20 @@
 # pure-ui
 
-Give Pi's collapsed tool calls a quiet, width-safe transcript shell while preserving native details under `Ctrl+O`. The package also includes a display-only thinking-block adapter.
+[English](README.en.md)
 
-### Install
+为 Pi 的折叠工具调用提供安静、适配终端宽度的 transcript 外壳，同时通过 `Ctrl+O` 保留原生详情。此包还包含一个仅负责显示的思考块适配器。
+
+### 安装
 
 ```fish
 pi install git:github.com/Chasen-Liao/pure-ui
 ```
 
-Restart Pi or run `/reload`.
+重启 Pi，或运行 `/reload`。
 
-## What it changes
+## 功能变化
 
-Collapsed tool rows use semantic theme colors with no gear, background fill, box padding, or filled blank rows:
+折叠后的工具行使用语义化主题色，不显示齿轮、背景填充、盒状内边距或填充空行：
 
 ```text
   % Read
@@ -20,21 +22,21 @@ Collapsed tool rows use semantic theme colors with no gear, background fill, box
     • src/b.ts                         18 lines
 ```
 
-- **Two-column outer inset.** Tool markers and image output align with an inset conversation surface. Very narrow terminals reduce the decoration before useful content.
-- **`%` tool headings.** A singleton stays on one line when its summary and outcome fit. A multi-call group has one `%` heading per contiguous tool type.
-- **`•` grouped children.** Bullets appear only for members of a multi-call group.
-- **Semantic, low-contrast status.** Tool names are emphasized, summaries and settled metadata are muted, pending state is warning-colored, and failures remain error-colored. Ordinary tool states have no background.
-- **Width-safe outcome tails.** Long summaries truncate before useful tails such as `→ done`, `→ 42 lines`, `→ +2/-1`, or a `bash` duration.
-- **Stable running groups.** Adjacent calls group as they appear. Pending state and elapsed `bash` time settle into the final outcome without changing the row count.
-- **Quiet-turn grouping.** Sequential calls can join across an assistant row with no visible prose or thinking. Visible assistant content remains a boundary.
-- **MCP and self-rendered tools.** Their stable call labels, compact arguments, pending state, success, and first error line use the same collapsed shell. Native self-rendered details return when expanded.
-- **Images remain visible.** Image fallback text and terminal image components render below the corresponding marker with the same inset.
-- **User-run `!` bash blocks.** Execution display is owned here: user-typed commands trade Pi's green rules for the railed prompt shell (dark surface, status-colored rail) that submitted prompts use.
-- **Native expansion remains authoritative.** `Ctrl+O` restores Pi's full individual tool rendering, including complete results, custom renderers, and error details.
+- **两列外侧缩进。** 工具标记和图片输出与缩进后的对话表面对齐。终端非常窄时会减少装饰，为有效内容留出空间。
+- **`%` 工具标题。** 当摘要和结果能够放在一行时，单次调用保持单行显示。多调用组会按连续的工具类型显示一个 `%` 标题。
+- **`•` 子项分组。** 只有多调用组的成员会显示项目符号。
+- **语义化低对比度状态。** 工具名称突出显示，摘要和已确定的元数据使用柔和颜色，等待状态使用警告色，失败保持错误色。普通工具状态不使用背景色。
+- **适配宽度的结果尾部。** 较长的摘要会在 `→ done`、`→ 42 lines`、`→ +2/-1` 或 `bash` 耗时等有用尾部之前截断。
+- **稳定的运行中分组。** 相邻调用按出现顺序分组。等待状态和 `bash` 的耗时会在最终结果中稳定下来，不改变行数。
+- **安静回合分组。** 如果中间没有可见文本或思考内容，连续调用可以跨 assistant 行合并。可见的 assistant 内容仍然会形成边界。
+- **MCP 和自渲染工具。** 它们稳定的调用标签、紧凑参数、等待状态、成功状态和第一行错误会使用相同的折叠外壳。展开后恢复原生自定义详情。
+- **图片保持可见。** 图片回退文本和终端图片组件会在对应标记下方使用相同缩进渲染。
+- **用户执行的 `!` bash 块。** 执行显示由本扩展负责：用户输入的命令使用带轨道的提示外壳（深色表面、状态色轨道），而不是 Pi 的绿色规则。
+- **原生展开仍然权威。** `Ctrl+O` 会恢复 Pi 的完整独立工具渲染，包括完整结果、自定义渲染器和错误详情。
 
-## Subagent plans
+## Subagent 计划
 
-A recognized `subagent` call renders as an unboxed plan in the shared tool aesthetic, marked with `↪` instead of the ordinary `%` tool marker:
+识别出的 `subagent` 调用会以共享工具风格渲染为无边框计划，并使用 `↪` 代替普通的 `%` 工具标记：
 
 ```text
   ↪ subagent chain (3 steps) [repo-review]
@@ -42,46 +44,42 @@ A recognized `subagent` call renders as an unboxed plan in the shared tool aesth
     2. 🐝 bee …
 ```
 
-Single calls stay on one `↪ [<emoji>] [<profile>][<agent>] <task preview>` row — no tool label; the `↪` marker identifies it. Chain calls get a heading with the kind, count, and scope followed by numbered steps (parallel tasks list without numbers), with each step ordered emoji, profile badge, name badge. Agent display names (emoji + name) are scraped from the native plan component — including the single-call heading — with an args fallback, and render in `accent`; everything else stays muted, and failed subagents go full red. Subagents never join ordinary tool groups.
+单次调用保持为一行 `↪ [<emoji>] [<profile>][<agent>] <task preview>`，不显示工具标签；`↪` 标记用于识别它。链式调用会显示包含类型、数量和范围的标题，下面列出编号步骤（并行任务列表不显示编号），每一步依次显示 emoji、profile 徽章和名称徽章。agent 的显示名称（emoji + name）会从原生计划组件中提取（包括单次调用标题），必要时回退到 args，并使用 `accent` 颜色；其他内容保持柔和色，失败的 subagent 使用全红显示。Subagent 不会加入普通工具分组。
 
-While a subagent runs, the plan headline's tail shows live progress from the streamed result details — `→ 1 turn · provider/model` in the warning tone — and a settled call keeps the same `→ N turns · provider/model` summary in muted (turns aggregate across tasks; the model shows only when every task used the same one).
+Subagent 运行时，计划标题尾部会显示流式结果详情中的实时进度，例如 `→ 1 turn · provider/model`（警告色）；调用结束后保持相同的 `→ N turns · provider/model` 摘要（柔和色）。turn 数会跨任务汇总，只有所有任务使用同一模型时才显示模型名。
 
-Malformed, ambiguous, future, or too-narrow shapes fall back to the generic `↪ subagent …` collapsed row rather than dropping information, and `Ctrl+O` still exposes the native subagent renderer.
+格式错误、含义不明确、未来版本或过于窄的形状会回退为通用的 `↪ subagent …` 折叠行，而不会丢失信息；`Ctrl+O` 仍然会暴露原生 subagent 渲染器。
 
-## Edit diffs
+## Edit 差异
 
-Settled `edit` calls keep their change visible without expanding: the call line gains a `+added/-removed` outcome stat, and the hunk renders as a bounded diff block underneath (`+` lines in the added tone, `-` in the removed tone, context muted, folded regions as `...`, capped at 12 lines with a count tail). The full native diff — line numbers, intra-line word highlights — still returns with `Ctrl+O`.
+已完成的 `edit` 调用无需展开即可看到变更：调用行会增加 `+added/-removed` 结果统计，下面渲染有边界的 diff 块（新增行为 added 色，删除行为 removed 色，上下文使用柔和色，折叠区域显示为 `...`，最多显示 12 行并附带数量尾部）。使用 `Ctrl+O` 仍可查看完整原生 diff，包括行号和行内单词高亮。
 
-Files and paths in collapsed rows are preserved as displayed by Pi: hyperlink-wrapped paths (Pi wraps `read` call paths in OSC 8 hyperlinks) keep their visible text when sanitized for one-line rows.
+折叠行中的文件和路径会保持 Pi 的显示方式：经过清理以适配单行显示时，带超链接的路径（Pi 会为 `read` 调用路径包裹 OSC 8 超链接）仍保留可见文本。
 
-## Scope boundary
+## 范围边界
 
-This package owns every **execution row** in the transcript: collapsed tool calls, tool grouping, subagent plans, thinking labels, and user-run `!` bash blocks (reshaped into the railed prompt shell). Transcript _surface_ layout — message insets, system-text and status-rule alignment, the editor surface, and the submitted-prompt shell for user messages — remains owned by Pi or a separate layout extension.
+此包负责 transcript 中的所有**执行行**：折叠工具调用、工具分组、subagent 计划、思考标签，以及用户执行的 `!` bash 块（调整为带轨道的提示外壳）。Transcript 的**表面布局**——消息缩进、系统文本和状态规则对齐、编辑器表面，以及用户消息的已提交提示外壳——仍由 Pi 或其他布局扩展负责。
 
-The `!` block inset follows Pi's user-message surface token (see `src/bash-block.ts`). If another layout extension is loaded, its shared container hook is used when available.
+`!` 块的缩进遵循 Pi 的用户消息表面 token（参见 `src/bash-block.ts`）。如果加载了其他布局扩展，会在可用时使用其共享容器 hook。
 
-## Hiding info entirely: /toggle-info
+## 完全隐藏信息：/toggle-info
 
-The default transcript keeps tool calls and thinking collapsed, and Ctrl+O /
-Ctrl+T expand them as usual. When you want prose only, `/toggle-info` hides
-tool calls (including user-run `!` blocks) and thinking completely; running it
-again restores the collapsed view. The toggle is per-session: every session
-starts visible.
+默认 transcript 会折叠工具调用和思考内容，`Ctrl+O` / `Ctrl+T` 仍可像往常一样展开。当你只想查看文本时，运行 `/toggle-info` 会完全隐藏工具调用（包括用户执行的 `!` 块）和思考内容；再次运行即可恢复折叠视图。该开关按会话生效：每个会话默认显示信息。
 
-## Bundled thinking-block extension
+## 内置思考块扩展
 
-The second package entrypoint, `src/thinking-block-merger.ts`, combines only directly adjacent `thinking` blocks in a display copy. Tool calls, text, provider blocks, signatures, and stored session messages are unchanged.
+第二个包入口 `src/thinking-block-merger.ts` 会在显示副本中只合并直接相邻的 `thinking` 块。工具调用、文本、provider 块、签名和存储的会话消息都不会改变。
 
-When Pi exposes its per-row hidden-thinking and streaming fields, hidden reasoning uses these native-themed labels:
+当 Pi 提供每行隐藏思考和流式字段时，隐藏的推理会使用这些原生主题标签：
 
 ```text
 ⠋ Thinking…  →  ⠙ Thinking…  →  …
 + Thought · 2.5s
 ```
 
-The live label samples Pi's native braille spinner sequence from the content updates Pi already renders; it does not add a timer. The adapter stores the first local streaming timestamp per assistant row in a `WeakMap`. A restored message or an older runtime with no streaming argument uses `+ Thought`. Visible-thinking mode remains native. There is no interval, timeout, render request, model call, or network work.
+实时标签会从 Pi 已经渲染的内容更新中采样原生 braille spinner 序列，不会额外添加计时器。适配器会在 `WeakMap` 中保存每个 assistant 行首次本地流式更新的时间戳。恢复的消息，或不提供流式参数的旧版运行时，会使用 `+ Thought`。可见思考模式仍由原生实现负责。这里没有 interval、timeout、render request、模型调用或网络操作。
 
-## Local development
+## 本地开发
 
 ```fish
 pi \
@@ -89,22 +87,22 @@ pi \
   -e ./src/thinking-block-merger.ts
 ```
 
-## Configuration
+## 配置
 
-Grouping calls from the same assistant message is enabled by default. Pi normally executes those calls in parallel. To keep same-message calls as individual compact rows while continuing to group sequential calls across quiet turns:
+默认会对同一 assistant 消息中的调用进行分组。Pi 通常会并行执行这些调用。如果希望同一消息中的调用保持为独立的紧凑行，同时继续跨安静回合分组连续调用：
 
 ```fish
 set -lx PURE_UI_COLLAPSE_PARALLEL 0
 pi
 ```
 
-`0`, `false`, `no`, and `off` disable parallel grouping. `1`, `true`, `yes`, and `on` enable it. The value is read when the extension loads.
+`0`、`false`、`no` 和 `off` 会禁用并行分组；`1`、`true`、`yes` 和 `on` 会启用。该值在扩展加载时读取。
 
-### Collapsed-row colors
+### 折叠行颜色
 
-Collapsed rows (tool calls, `+ Thought`, subagents) default to the theme's `syntaxComment` color — it ships with every Pi theme and reads as a muted tone — with the bolded tool name and the call content sharing it. Failures stay error-colored and live spinners keep their existing tints.
+折叠行（工具调用、`+ Thought`、subagent）默认使用主题的 `syntaxComment` 颜色——每个 Pi 主题都会提供该颜色，并且它通常显示为柔和色——加粗的工具名称和调用内容也共享该颜色。失败保持错误色，运行中的 spinner 保持原有色调。
 
-A theme can override each collapsed kind independently with optional color tokens:
+主题可以使用可选颜色 token 分别覆盖每种折叠类型：
 
 ```json
 {
@@ -115,44 +113,44 @@ A theme can override each collapsed kind independently with optional color token
 }
 ```
 
-## Compatibility and fallback policy
+## 兼容性和回退策略
 
-**Compatible Pi version:** `@earendil-works/pi-coding-agent` and `@earendil-works/pi-tui` `>=0.80.6`.
+**兼容的 Pi 版本：** `@earendil-works/pi-coding-agent` 和 `@earendil-works/pi-tui` `>=0.80.6`。
 
-Pi has no public hook for native tool rows, transcript grouping, or per-message hidden-thinking labels. The package therefore uses three small guarded prototype adapters:
+Pi 没有原生工具行、transcript 分组或每条消息隐藏思考标签的公开 hook。因此，本包使用三个小型且受保护的 prototype 适配器：
 
-- `ToolExecutionComponent` for collapsed presentation;
-- `Container` for adjacent grouping; and
-- `AssistantMessageComponent.updateContent` for display-only thinking merging and lifecycle labels.
+- `ToolExecutionComponent`：负责折叠显示；
+- `Container`：负责相邻分组；
+- `AssistantMessageComponent.updateContent`：负责仅用于显示的思考合并和生命周期标签。
 
-Each adapter feature-detects the fields and methods it needs, keeps the original method, uses an idempotency symbol, catches cosmetic failures, and restores the original on `session_shutdown` when it still owns the patch. Unsupported shapes fail open to Pi's native rendering. The thinking adapter continues adjacent merging even when the private label shape is unavailable.
+每个适配器都会检测所需字段和方法，保留原始方法，使用幂等 symbol，捕获装饰性错误，并在 `session_shutdown` 时仍由自身持有补丁的情况下恢复原始方法。不支持的形状会安全回退到 Pi 的原生渲染。即使私有标签形状不可用，思考适配器仍会继续进行相邻合并。
 
-Expanded tools always use Pi's native renderer. The collapsed tool shell owns its two-column inset directly; transcript layout extensions should leave tool rows unchanged, preventing load-order-dependent double padding.
+展开的工具始终使用 Pi 的原生渲染器。折叠工具外壳直接负责两列缩进；transcript 布局扩展应保持工具行不变，以避免因加载顺序导致重复缩进。
 
-> TODO: migrate these adapters to public Pi transcript and tool-rendering APIs when available.
+> TODO：Pi 提供公开的 transcript 和工具渲染 API 后，迁移这些适配器。
 
-## Design
+## 设计
 
-- No runtime dependencies.
-- No mutation of tool arguments, tool results, provider content, or session messages.
-- Group output is cached per row and invalidated on meaningful display transitions.
-- No timers or independent render loops.
+- 无运行时依赖。
+- 不修改工具参数、工具结果、provider 内容或会话消息。
+- 每行缓存分组输出，并在有意义的显示状态变化时失效。
+- 无计时器或独立渲染循环。
 
-## Development
+## 开发
 
-From the repository root:
+在仓库根目录执行：
 
 ```bash
 npx vitest run test
 npm run package:check
 ```
 
-Inspect the publish payload:
+检查发布内容：
 
 ```bash
 npm pack --dry-run
 ```
 
-## License
+## 许可证
 
 MIT
