@@ -5,7 +5,7 @@ Give Pi's collapsed tool calls a quiet, width-safe transcript shell while preser
 ### Install
 
 ```fish
-pi install npm:pure-ui
+pi install git:github.com/Chasen-Liao/pure-ui
 ```
 
 Restart Pi or run `/reload`.
