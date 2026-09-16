@@ -4,13 +4,15 @@
 
 Give Pi's collapsed tool calls a quiet, width-safe transcript shell while preserving native details under `Ctrl+O`. The package also includes a display-only thinking-block adapter.
 
-### Install
+### Install (currently targeting Pi 0.85.1)
+
+This version is validated against Pi `0.85.1`. Install it with Pi's package manager:
 
 ```fish
 pi install git:github.com/Chasen-Liao/pure-ui
 ```
 
-Restart Pi or run `/reload`.
+The package manifest automatically loads both the main UI extension and the thinking-block extension. Restart Pi or run `/reload` after installation.
 
 ## What it changes
 
@@ -119,7 +121,9 @@ A theme can override each collapsed kind independently with optional color token
 
 ## Compatibility and fallback policy
 
-**Compatible Pi version:** `@earendil-works/pi-coding-agent` and `@earendil-works/pi-tui` `>=0.80.6`.
+**Currently targeted and validated Pi version:** `@earendil-works/pi-coding-agent` and `@earendil-works/pi-tui` `0.85.1`.
+
+The package manifest keeps the `>=0.80.6` peer range for installation metadata, but this is not a complete cross-version guarantee because the package relies on Pi's private rendering structures. For predictable behavior, use Pi `0.85.1`. Other versions may fall back to native rendering or require additional adaptation.
 
 Pi has no public hook for native tool rows, transcript grouping, or per-message hidden-thinking labels. The package therefore uses three small guarded prototype adapters:
 

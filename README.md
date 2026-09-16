@@ -4,13 +4,15 @@
 
 为 Pi 的折叠工具调用提供安静、适配终端宽度的 transcript 外壳，同时通过 `Ctrl+O` 保留原生详情。此包还包含一个仅负责显示的思考块适配器。
 
-### 安装
+### 安装（当前适配 Pi 0.85.1）
+
+当前版本按 Pi `0.85.1` 验证。使用 Pi 的包管理器安装：
 
 ```fish
 pi install git:github.com/Chasen-Liao/pure-ui
 ```
 
-重启 Pi，或运行 `/reload`。
+包清单会自动加载主 UI 扩展和 thinking-block 扩展。安装后重启 Pi，或在 Pi 中运行 `/reload`。
 
 ## 功能变化
 
@@ -115,7 +117,9 @@ pi
 
 ## 兼容性和回退策略
 
-**兼容的 Pi 版本：** `@earendil-works/pi-coding-agent` 和 `@earendil-works/pi-tui` `>=0.80.6`。
+**当前适配并验证的 Pi 版本：** `@earendil-works/pi-coding-agent` 和 `@earendil-works/pi-tui` `0.85.1`。
+
+包清单中的 peer 版本范围仍为 `>=0.80.6`，用于保留安装兼容性；但本包依赖 Pi 的私有渲染结构，这不是完整的跨版本保证。需要稳定行为时，请优先使用 Pi `0.85.1`。其他版本可能回退到原生渲染，也可能需要额外适配。
 
 Pi 没有原生工具行、transcript 分组或每条消息隐藏思考标签的公开 hook。因此，本包使用三个小型且受保护的 prototype 适配器：
 

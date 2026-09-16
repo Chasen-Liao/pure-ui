@@ -35,17 +35,16 @@
   calls use; only the live "⠋ Thinking…" spinner keeps the session's active
   thinking-level tint (thinkingOff…thinkingMax), re-tinting on
   thinking_level_select; the expanded thinking block is untouched. The
-  PI_TOOL_CALL_MARKERS_THOUGHT_COLOR values are `level` (default),
-  `mdheading`, and `inherit`; the midpoint `gray` variant and its RGB
+  `PURE_UI_THOUGHT_COLOR` values are `level` (default), `mdheading`, and
+  `inherit`; the midpoint `gray` variant and its RGB
   color math are gone.
 - Paint user-run `!` bash block surfaces with the theme's
   `userMessageBg` token instead of a hardcoded hex, matching
   pi-content-layout's prompt surfaces under any theme.
 - Show subagent progress in the collapsed plan headline: while running, the tail reads `→ N turns · provider/model` in the warning tone from streamed result details; settled calls keep the same `→ N turns · provider/model` in muted instead of a bare `→ done` (turns aggregate across tasks, model only when all tasks agree).
-- Source the settled "+ Thought" label color from the theme's mdHeading
-  token (orange in cobalt2, amber in Pi's stock themes) instead of a
-  hardcoded RGB. The PI_TOOL_CALL_MARKERS_THOUGHT_COLOR experiment values
-  are now `mdheading` (default), `gray`, and `inherit`.
+- Allow the settled "+ Thought" label color to use the theme's mdHeading
+  token via `PURE_UI_THOUGHT_COLOR=mdheading`; supported values are
+  `level` (default), `mdheading`, and `inherit`.
 - Fix: preserve the visible text of hyperlink-wrapped paths in collapsed rows. Pi renders `read` call paths as OSC 8 hyperlinks (`ESC]8;;url ESC\ <path> ESC]8;; ESC\`); the previous greedy OSC strip consumed the path text along with the sequences, collapsing `% read: README.md:1-400` to `% read: :1-400`. OSC payloads now end at their first BEL/ST terminator, so `read`/`write`/`ls` rows show their filenames again.
 - Show settled `edit` changes inline: the call line gains a `+added/-removed` outcome stat, and the display diff from `result.details.diff` renders as a bounded block underneath (`+` lines in the added tone, `-` in the removed tone, context muted, `...` for folded regions; capped at 12 lines with a `+N more` tail). `Ctrl+O` still returns Pi's full native diff.
 - Render subagent plans with a `&` marker instead of `%`, so delegated calls read differently from ordinary tool rows (both the parsed plan shape and the generic fallback).
@@ -66,10 +65,10 @@
 - Keep expanded rows fully native so `Ctrl+O` restores complete results, custom renderers, and errors without collapsed decoration.
 - Label hidden local reasoning with Pi's native braille spinner sequence (`⠋ Thinking…`, `⠙ Thinking…`, …) while streaming and `+ Thought · X.Xs` when finalized; use `+ Thought` for restored messages and older runtimes without streaming metadata.
 - Track thinking duration per assistant row in a `WeakMap`, forward optional/future `updateContent` arguments, retain display-only adjacent thinking merging, and add no timer or render loop.
-- Feature-detect private tool and thinking component shapes and fail open to Pi's native rendering while retaining Pi `>=0.80.6` support.
+- Feature-detect private tool and thinking component shapes and fail open to Pi's native rendering; validate the current Pi `0.85.1` runtime without promising cross-version support.
 - Compact multiline singleton calls into one width-safe summary after settlement, including timeout metadata, while preserving the full native call under `Ctrl+O`.
 - Group adjacent calls while they are still running, update pending outcomes in place, and merge sequential calls across quiet assistant turns.
-- Add `PI_TOOL_CALL_MARKERS_COLLAPSE_PARALLEL`, enabled by default, to optionally keep same-assistant-message calls individual.
+- Add `PURE_UI_COLLAPSE_PARALLEL`, enabled by default, to optionally keep same-assistant-message calls individual.
 - Only invalidate grouped-render caches on meaningful state transitions.
 
 ## 0.1.2
